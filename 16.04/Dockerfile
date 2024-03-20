@@ -73,11 +73,17 @@ ENV USER_NAME embeddeduse
 RUN echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER_NAME} && \
     chmod 0440 /etc/sudoers.d/${USER_NAME}
 
+ENV HOME /home/${USER_NAME}
+
 # Copy arm-linux-gnueabihf toolchain
-COPY --from=downloader /tmp/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf /home/${USER_NAME}/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf
+COPY --from=downloader /tmp/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf $HOME/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf
 
 # Copy aarch64-linux-gnu toolchain
-COPY --from=downloader /tmp/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu /home/${USER_NAME}/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu
+COPY --from=downloader /tmp/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu $HOME/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu
+
+ENV TOOLCHAIN_PATH_ARMV7 $HOME/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf
+
+ENV TOOLCHAIN_PATH_ARMV8 $HOME/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu
 
 # The running container writes all the build artefacts to a host directory (outside the container).
 # The container can only write files to host directories, if it uses the same user ID and
@@ -94,6 +100,6 @@ RUN groupadd -g $host_gid $USER_NAME && useradd -g $host_gid -m -s /bin/bash -u 
 # normal user. Hence, we switch to the newly created user embeddeduse.
 USER $USER_NAME
 
-WORKDIR /Work
+WORKDIR /Work/build
 
-
+#ENTRYPOINT ["/bin/bash", "-c", "source conf/setenv"]
