@@ -19,6 +19,21 @@
 # Note that you can use any string for <tag>. It need not be the name of a Ubuntu version.
 
 # Use Ubuntu 16.04 LTS as the basis for the Docker image.
+# Use a base image with wget and tar
+FROM ubuntu:latest AS downloader
+
+# Install required packages
+RUN apt-get update && apt-get install -y wget tar xz-utils
+
+# Download and extract arm-linux-gnueabihf toolchain
+RUN wget -O arm-linux-gnueabihf.tar.xz https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/arm-linux-gnueabihf/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz \
+    && tar -xvf arm-linux-gnueabihf.tar.xz -C /tmp
+
+# Download and extract aarch64-linux-gnu toolchain
+RUN wget -O aarch64-linux-gnu.tar.xz https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-linux-gnu/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz \
+    && tar -xvf aarch64-linux-gnu.tar.xz -C /tmp
+
+
 FROM ubuntu:16.04
 
 # Install all Linux packages required for Yocto builds as given in section "Build Host Packages"
@@ -57,6 +72,12 @@ ENV LC_ALL en_US.UTF-8
 ENV USER_NAME embeddeduse
 RUN echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER_NAME} && \
     chmod 0440 /etc/sudoers.d/${USER_NAME}
+
+# Copy arm-linux-gnueabihf toolchain
+COPY --from=downloader /tmp/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf /home/${USER_NAME}/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabihf
+
+# Copy aarch64-linux-gnu toolchain
+COPY --from=downloader /tmp/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu /home/${USER_NAME}/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu
 
 # The running container writes all the build artefacts to a host directory (outside the container).
 # The container can only write files to host directories, if it uses the same user ID and
