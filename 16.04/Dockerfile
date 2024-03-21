@@ -102,4 +102,4 @@ USER $USER_NAME
 
 WORKDIR /Work/build
 
-#ENTRYPOINT ["/bin/bash", "-c", "source conf/setenv"]
+ENTRYPOINT ["/bin/bash", "-c", "source conf/setenv && /bin/bash"]
